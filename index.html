@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DBL Farm Bot</title>
+    <style>
+        /* Reset de base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #e74c3c;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 2px dashed #e74c3c;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            cursor: pointer;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            color: white;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DBL Farm Bot</h1>
+        <div class="card">
+            <form id="farmForm">
+                <label for="file">Choisissez votre fichier ECD:</label>
+                <input type="file" id="file" name="file" accept=".ecd">
+                <div class="buttons">
+                    <button type="button" onclick="farm('android')">!dbl</button>
+                    <button type="button" onclick="farm('ios')">!ios</button>
+                </div>
+            </form>
+            <div id="output" class="output"></div>
+        </div>
+    </div>
+    <script>
+        function farm(platform) {
+            const fileInput = document.getElementById('file');
+            const output = document.getElementById('output');
+            const file = fileInput.files[0];
+
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('platform', platform);
+
+                output.innerHTML = 'Farming ' + (platform === 'android' ? 'Android' : 'iOS') + '... 🚜';
+
+                fetch('/api/farm', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur réseau : ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    output.innerHTML += '<br>' + (data.message || 'Une erreur est survenue.');
+                })
+                .catch(error => {
+                    output.innerHTML += '<br> Erreur: ' + error.message;
+                });
+            } else {
+                output.innerHTML = 'Veuillez sélectionner un fichier ECD avant de lancer le farm.';
+            }
+        }
+    </script>
+</body>
+</html>
